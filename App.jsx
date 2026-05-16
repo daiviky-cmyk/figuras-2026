@@ -4,12 +4,10 @@ import {
   Minus, CheckCircle2, Trash2, Database, Copy, Cloud, CloudOff, Loader2
 } from 'lucide-react';
 
-// Firebase Imports
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 
-// Configuración de Firebase desde variables de entorno
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -59,7 +57,6 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // 1. Manejo de Autenticación
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -73,12 +70,9 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // 2. Sincronización con Firestore
   useEffect(() => {
     if (!user) return;
-    
     const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'stickers', 'main');
-    
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         setStickers(docSnap.data().collection || {});
@@ -88,7 +82,6 @@ export default function App() {
       console.error("Firestore error:", error);
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, [user]);
 
@@ -97,12 +90,9 @@ export default function App() {
     const key = `${category}-${number}`;
     const current = stickers[key] || 0;
     const newValue = Math.max(0, current + delta);
-    
     const newCollection = { ...stickers, [key]: newValue };
     if (newValue === 0) delete newCollection[key];
-    
     setStickers(newCollection);
-
     try {
       const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'stickers', 'main');
       await setDoc(docRef, { collection: newCollection });
